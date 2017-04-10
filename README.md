@@ -1,4 +1,4 @@
-# U-Net for Keras (Work in Progress)
+# U-Net for Keras
 
 This is an implementation of the U-Net model for Keras.
 
