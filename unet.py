@@ -7,7 +7,7 @@ def level_block(m, dim, depth, acti):
         n = Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
         n = Conv2D(dim, (3, 3), activation=acti, padding='same')(n)
         m = MaxPooling2D((2, 2))(n)
-        m = level_block(m, 2*dim, depth-1, acti, drop)
+        m = level_block(m, 2*dim, depth-1, acti)
         m = UpSampling2D((2, 2))(m)
         m = Conv2D(dim, (2, 2), activation=acti, padding='same')(m)
         m = Concatenate(axis=3)([n, m])
@@ -16,7 +16,7 @@ def level_block(m, dim, depth, acti):
 
 def UNet(img_shape, n_out=2, dim=64, depth=4, acti='relu', flatten=False):
     i = Input(shape=img_shape)
-    o = level_block(i, dim, depth, acti, drop)
+    o = level_block(i, dim, depth, acti)
     o = Conv2D(n_out, (1, 1))(o)
     if flatten:
         o = Reshape(n_out, img_shape[0] * img_shape[1])(o)
