@@ -14,7 +14,7 @@ def level_block(m, dim, depth, acti):
     m = Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
     return Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
 
-def UNet(img_shape, n_out=1, dim=64, depth=4, acti='relu', flatten=False):
+def UNet(img_shape, n_out=2, dim=64, depth=4, acti='relu', flatten=False):
     i = Input(shape=img_shape)
     o = level_block(i, dim, depth, acti, drop)
     o = Conv2D(n_out, (1, 1))(o)
