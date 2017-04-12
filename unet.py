@@ -11,7 +11,7 @@ def level_block(m, dim, depth, acti):
         m = UpSampling2D((2, 2))(m)
         m = Conv2D(dim, (2, 2), activation=acti, padding='same')(m)
         m = Concatenate(axis=3)([n, m])
-        m = Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
+    m = Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
     return Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
 
 def UNet(img_shape, n_out=1, dim=64, depth=4, acti='relu', flatten=False):
