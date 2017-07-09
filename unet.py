@@ -1,25 +1,36 @@
 from keras.models import Input, Model
-from keras.layers import Conv2D, Concatenate, MaxPooling2D, Reshape
-from keras.layers import UpSampling2D, Dropout, Activation, Permute
+from keras.layers import Conv2D, Concatenate, MaxPooling2D
+from keras.layers import UpSampling2D, Dropout, Activation
 
-def level_block(m, dim, depth, acti):
+'''
+U-Net: Convolutional Networks for Biomedical Image Segmentation
+(https://arxiv.org/abs/1505.04597)
+---
+img_shape: (height, width, channels)
+out_ch: number of output channels
+start_ch: number of channels of the first convolution
+depth: zero indexed depth of the U-structure
+inc_rate: rate at which the convolutional channels will increase
+activation: activation function after convolutions
+dropout: amount of dropout in the contracting part
+fcn: use strided convolutions instead of maxpooling if true
+'''
+
+def level_block(m, dim, depth, inc_rate, acti, dropout, fcn):
     if depth > 0:
-        n = Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
-        n = Conv2D(dim, (3, 3), activation=acti, padding='same')(n)
-        m = MaxPooling2D((2, 2))(n)
-        m = level_block(m, 2*dim, depth-1, acti)
-        m = UpSampling2D((2, 2))(m)
-        m = Conv2D(dim, (2, 2), activation=acti, padding='same')(m)
+        n = Conv2D(dim, 3, activation=acti, padding='same')(m)
+        n = Dropout(dropout)(n) if dropout else n
+        n = Conv2D(dim, 3, activation=acti, padding='same')(n)
+        m = Conv2D(dim, 3, strides=2, activation=acti, padding='same')(n) if fcn else MaxPooling2D()(n)
+        m = level_block(m, int(inc_rate*dim), depth-1, inc_rate, acti, dropout, fcn)
+        m = UpSampling2D()(m)
+        m = Conv2D(dim, 2, activation=acti, padding='same')(m)
         m = Concatenate(axis=3)([n, m])
-    m = Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
-    return Conv2D(dim, (3, 3), activation=acti, padding='same')(m)
+    m = Conv2D(dim, 3, activation=acti, padding='same')(m)
+    return Conv2D(dim, 3, activation=acti, padding='same')(m)
 
-def UNet(img_shape, n_out=2, dim=64, depth=4, acti='relu', flatten=False):
+def UNet(img_shape, out_ch=1, start_ch=64, depth=4, inc_rate=2, activation='elu', dropout=0, fcn=False):
     i = Input(shape=img_shape)
-    o = level_block(i, dim, depth, acti)
-    o = Conv2D(n_out, (1, 1))(o)
-    if flatten:
-        o = Reshape(n_out, img_shape[0] * img_shape[1])(o)
-        o = Permute((2, 1))(o)
-    o = Activation('softmax')(o)
+    o = level_block(img_shape, start_ch, depth, inc_rate, activation, dropout, fcn)
+    o = Conv2D(out_ch, 1, activation='sigmoid')(o)
     return Model(inputs=i, outputs=o)
