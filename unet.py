@@ -13,6 +13,7 @@ depth: zero indexed depth of the U-structure
 inc_rate: rate at which the convolutional channels will increase
 activation: activation function after convolutions
 dropout: amount of dropout in the contracting part
+bn: adds Batch Normalization if true
 fcn: use strided convolutions instead of maxpooling if true
 '''
 
