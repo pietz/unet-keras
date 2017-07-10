@@ -17,22 +17,22 @@ bn: adds Batch Normalization if true
 fcn: use strided convolutions instead of maxpooling if true
 '''
 
+def conv_bn(m, dim, acti, bn):
+    m = Conv2D(dim, 3, activation=acti, padding='same')(m)
+    return BatchNormalization()(m) if bn else m
+
 def level_block(m, dim, depth, inc_rate, acti, dropout, bn, fcn):
     if depth > 0:
-        n = Conv2D(dim, 3, activation=acti, padding='same')(m)
-        n = BatchNormalization()(n) if bn else n
+        n = conv_bn(m, dim, acti, bn)
         n = Dropout(dropout)(n) if dropout else n
-        n = Conv2D(dim, 3, activation=acti, padding='same')(n)
-        n = BatchNormalization()(n) if bn else n
+        n = conv_bn(n, dim, acti, bn)
         m = Conv2D(dim, 3, strides=2, activation=acti, padding='same')(n) if fcn else MaxPooling2D()(n)
         m = level_block(m, int(inc_rate*dim), depth-1, inc_rate, acti, dropout, bn, fcn)
         m = UpSampling2D()(m)
         m = Conv2D(dim, 2, activation=acti, padding='same')(m)
         m = Concatenate(axis=3)([n, m])
-    m = Conv2D(dim, 3, activation=acti, padding='same')(m)
-    m = BatchNormalization()(m) if bn else m
-    m = Conv2D(dim, 3, activation=acti, padding='same')(m)
-    return BatchNormalization()(m) if bn else m
+    m = conv_bn(m, dim, acti, bn)
+    return conv_bn(m, dim, acti, bn)
 
 def UNet(img_shape, out_ch=1, start_ch=64, depth=4, inc_rate=2, activation='relu', dropout=0.05, bn=False, fcn=False):
     i = Input(shape=img_shape)
