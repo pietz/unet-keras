@@ -36,6 +36,6 @@ def level_block(m, dim, depth, inc_rate, acti, dropout, bn, fcn):
 
 def UNet(img_shape, out_ch=1, start_ch=64, depth=4, inc_rate=2, activation='relu', dropout=0.05, bn=False, fcn=False):
     i = Input(shape=img_shape)
-    o = level_block(img_shape, start_ch, depth, inc_rate, activation, dropout, bn, fcn)
+    o = level_block(i, start_ch, depth, inc_rate, activation, dropout, bn, fcn)
     o = Conv2D(out_ch, 1, activation='sigmoid')(o)
     return Model(inputs=i, outputs=o)
